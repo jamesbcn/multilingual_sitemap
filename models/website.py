@@ -76,14 +76,18 @@ class Website(models.Model):
         # -----------------------
         # Blog posts
         # -----------------------
+        current_datetime = fields.Datetime.now()
         blog_posts = self.env['blog.post'].search([
             ('website_published', '=', True),
-            ('website_id', 'in', (website.id, False))
+            ('website_id', 'in', (website.id, False)),
+            '|',
+            ('post_date', '=', False),
+            ('post_date', '<=', current_datetime)
         ])
-        _logger.info("Found %d blog posts", len(blog_posts))
+        _logger.info("Found %d published blog posts with valid dates", len(blog_posts))
 
         for post in blog_posts:
-            _logger.info("Processing blog post ID=%s title=%s", post.id, post.name)
+            _logger.info("Processing blog post ID=%s title=%s post_date=%s", post.id, post.name, post.post_date)
             for lang in active_languages:
                 try:
                     post_lang = post.with_context(lang=lang.code, website_id=website.id)
